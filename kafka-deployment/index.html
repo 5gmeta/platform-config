@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Kafka Infraestructure - </title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Kafka Infraestructure";
+        var mkdocs_page_input_path = "kafka-deployment.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/Logo_5G_META_reversed_on_dark_backgr_only.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".."></a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Kafka Infraestructure</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="kafka-infraestructure">Kafka Infraestructure</h1>
+<h2 id="infraestructure-deployment">Infraestructure deployment</h2>
+<p>For deploying Kafka Platform, the solution from Confluent has been used: 
+<a href="https://github.com/confluentinc/cp-helm-charts">https://github.com/confluentinc/cp-helm-charts</a></p>
+<p>Several changes have been made in the helm chart provided by Confluent. For example, <a href="https://github.com/provectus/kafka-ui">Kafka UI</a> has been added to the deployment files, so that is is deployed together with the rest of components. A service monitor for monitoring kafka has been also added.</p>
+<p>The modified helm chart can be found in the 5GMETA's repositories: <a href="https://github.com/5gmeta/stream-data-gateway/tree/main/src/prod-version">https://github.com/5gmeta/stream-data-gateway/tree/main/src/prod-version</a></p>
+<p>To install Kafka Platform helm chart, first clone the previous repository and go to <a href="https://github.com/5gmeta/stream-data-gateway/tree/main/src/prod-version">prod-version</a> folder. Then install it:</p>
+<pre><code>git clone https://github.com/5gmeta/stream-data-gateway.git
+cd stream-data-gateway/src/prod-version
+helm install kafkacluster ./cp-helm-charts -n kafka
+</code></pre>
+<p>If for some reason the official (no modified )helm has to be installed:</p>
+<pre><code>helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
+helm repo update
+helm install confluentinc/cp-helm-charts --name kafka --set cp-control-center.enabled=false
+</code></pre>
+<p><strong>Confluent Kafka Grafana dashboard:</strong>
+To be imported in Grafana, <a href="https://github.com/5gmeta/stream-data-gateway/blob/main/src/prod-version/cp-helm-charts/5GMETA/confluent-open-source-grafana-dashboard.json">https://github.com/5gmeta/stream-data-gateway/blob/main/src/prod-version/cp-helm-charts/5GMETA/confluent-open-source-grafana-dashboard.json</a></p>
+<p><strong>Kafka-UI manifest for deploying the UI:</strong>
+It is deployed through the helm, the followinf manifest is the one that is being deployed:</p>
+<pre><code>---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  labels:
+    app.kubernetes.io/component: kafka-ui
+  namespace: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: kafka-ui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: kafka-ui
+    spec:
+      containers:
+      - name: kafka-ui
+        image: provectuslabs/kafka-ui:latest
+        imagePullPolicy: Always
+        ports:
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+        env:
+          - name: KAFKA_CLUSTERS_0_NAME
+            value: 5gmeta-cloud
+          - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+            value: kafkacluster-cp-kafka.kafka.svc.cluster.local:9092
+#          - name: KAFKA_CLUSTERS_0_ZOOKEEPER
+#            value: kafkacluster-cp-zookeeper.kafka.svc.cluster.local:2181
+          - name: KAFKA_CLUSTERS_0_SCHEMAREGISTRY
+            value: http://kafkacluster-cp-schema-registry.kafka.svc.cluster.local:8081
+          - name: KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME
+            value: kafka-connect
+          - name: KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS
+            value: http://kafkacluster-cp-kafka-connect.kafka.svc.cluster.local:8083
+          - name: KAFKA_CLUSTERS_0_KSQLDBSERVER
+            value: http://kafkacluster-cp-ksql-server.kafka.svc.cluster.local:8088
+          - name: AUTH_TYPE
+            value: &quot;LOGIN_FORM&quot;
+          - name: SPRING_SECURITY_USER_NAME
+            value: &lt;user&gt;
+          - name: SPRING_SECURITY_USER_PASSWORD
+            value: &lt;password&gt;
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  labels:
+    app.kubernetes.io/component: kafka-ui
+  namespace: kafka
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      protocol: TCP
+      targetPort: http
+      nodePort: 31080
+  selector:
+    app.kubernetes.io/component: kafka-ui
+</code></pre>
+<h2 id="ksql-db">KSQL DB</h2>
+<p>For deploying a KSQL DB Client and run SQL commands, the following command can be used:</p>
+<pre><code>kubectl run tmp-ksql-cli -n kafka --rm -i --tty --image confluentinc/cp-ksqldb-cli:7.1.0 [http://kafkacluster-cp-ksql-server:8088](http://kafkacluster-cp-ksql-server:8088)
+</code></pre>
+<p>The commands can be also run though Kafka UI.</p>
+<h2 id="kafka-connect">Kafka Connect</h2>
+<p>Connectors configuration code base:
+<strong>Upload Connector:</strong></p>
+<pre><code>{
+    &quot;connector.class&quot;: &quot;com.datamountaineer.streamreactor.connect.jms.source.JMSSourceConnector&quot;,
+    &quot;connect.jms.initial.context.factory&quot;: &quot;org.apache.activemq.jndi.ActiveMQInitialContextFactory&quot;,
+    &quot;tasks.max&quot;: 1,
+    &quot;connect.jms.url&quot;: &quot;tcp://&lt;IP&gt;:&lt;PORT&gt;&quot;,
+    &quot;connect.jms.username&quot;: &quot;&lt;user&gt;&quot;,
+    &quot;connect.jms.connection.factory&quot;: &quot;ConnectionFactory&quot;,
+    &quot;connect.jms.queues&quot;: &quot;jms-queue&quot;,
+    &quot;connect.jms.password&quot;: &quot;&lt;password&gt;&quot;,
+    &quot;connect.progress.enabled&quot;: &quot;true&quot;,
+    &quot;connect.jms.kcql&quot;: &quot;INSERT INTO &quot;&lt;datatype&gt;-&lt;instance_type&gt;&quot; SELECT * FROM &quot;&lt;datatype&gt;-&lt;instance_type&gt;&quot; WITHTYPE TOPIC &quot;,
+    &quot;name&quot;: &quot;&lt;CONNECTOR NAME&gt;&quot;
+}
+</code></pre>
+<p><strong>Download Connector:</strong></p>
+<pre><code>{
+    &quot;connector.class&quot;: &quot;com.datamountaineer.streamreactor.connect.jms.sink.JMSSinkConnector&quot;,
+    &quot;connect.jms.initial.context.factory&quot;: &quot;org.apache.activemq.jndi.ActiveMQInitialContextFactory&quot;,
+    &quot;tasks.max&quot;: 1,
+    &quot;connect.jms.url&quot;: &quot;tcp://&lt;IP&gt;:&lt;PORT&gt;&quot;,
+    &quot;connect.jms.username&quot;: &quot;&lt;user&gt;&quot;,
+    &quot;connect.jms.connection.factory&quot;: &quot;ConnectionFactory&quot;,
+    &quot;connect.jms.queues&quot;: &quot;jms-queue&quot;,
+    &quot;connect.jms.password&quot;: &quot;&lt;password&gt;&quot;,
+    &quot;connect.progress.enabled&quot;: &quot;true&quot;,
+    &quot;connect.jms.kcql&quot;: &quot;INSERT INTO event SELECT * FROM event WITHTYPE TOPIC WITHFORMAT JSON &quot;,
+    &quot;topics&quot;: &quot;event&quot;,
+    &quot;name&quot;: &quot;&lt;CONNECTOR NAME&gt;&quot;
+}
+</code></pre>
+<h2 id="schema-registry">Schema Registry</h2>
+<p>Schema for <strong>&lt; datatype&gt;-<instance_type></strong> topics. The name of the schema must be <strong>&lt; datatype&gt;-<instance_type>-value</strong>.</p>
+<pre><code>{
+    &quot;type&quot;: &quot;record&quot;,
+    &quot;name&quot;: &quot;jms&quot;,
+    &quot;namespace&quot;: &quot;com.datamountaineer.streamreactor.connect&quot;,
+    &quot;fields&quot;: [
+        {
+            &quot;name&quot;: &quot;message_timestamp&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;long&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;correlation_id&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;string&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;redelivered&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;boolean&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;reply_to&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;string&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;destination&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;string&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;message_id&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;string&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;mode&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;int&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;type&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;string&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;priority&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;int&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;bytes_payload&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                &quot;bytes&quot;
+            ],
+            &quot;default&quot;: null
+        },
+        {
+            &quot;name&quot;: &quot;properties&quot;,
+            &quot;type&quot;: [
+                &quot;null&quot;,
+                {
+                    &quot;type&quot;: &quot;map&quot;,
+                    &quot;values&quot;: [
+                        &quot;null&quot;,
+                        &quot;string&quot;
+                    ]
+                }
+            ],
+            &quot;default&quot;: null
+        }
+    ],
+    &quot;connect.name&quot;: &quot;com.datamountaineer.streamreactor.connect.jms&quot;
+}
+</code></pre>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

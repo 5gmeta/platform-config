@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Edge Stack Deployment - </title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Edge Stack Deployment";
+        var mkdocs_page_input_path = "mec-deployment.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/Logo_5G_META_reversed_on_dark_backgr_only.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".."></a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Edge Stack Deployment</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="edge-stack-deployment">Edge Stack Deployment</h1>
+<p>In order to easily deploy all the components forming the 5GMETA Edge Stack, an unique Ansible playbook will be used. The following playbook will install all the dependencies and components and repositories necessary for the 5GMETA platform's MEC server.</p>
+<p>Furthermore, every time a change is made in the stack, it will be reflected in the playbook and running it again will let to update the deployment without extra effort.</p>
+<p>The only requeriment to deploy the stack is an Ubuntu 20.04 image. I can also be an Ubuntu 18.04 image, but in that case OSM 10 will be installed instead OSM 11.</p>
+<p><strong>The server needs at least 16 GB of RAM, 4 vCPUs and 60 GB of disk.</strong></p>
+<p>The playbook will the deploy the following components:</p>
+<ul>
+<li>Docker Engine</li>
+<li>Single-node Kubernetes cluster (v1.20.11)<ul>
+<li>Composed by Flannel CNI, OpenEBS Storage and MetalLB Load-balancer</li>
+</ul>
+</li>
+<li>Helm k8s application manager</li>
+<li>Kube-prometheus-stack and Kube-eagle for k8s monitoring<ul>
+<li>Prometheus, Grafana and dashboards</li>
+</ul>
+</li>
+<li>MySQL cluster</li>
+<li>Open Source MANO (OSM): v11 for Ubuntu 20.04 and v10 for Ubuntu 18.04</li>
+<li>Notary and Connaisseur for managing security in the cluster</li>
+<li>5GMETA MEC APIs and Base Components</li>
+</ul>
+<h2 id="installing-requirements">Installing requirements</h2>
+<p>To run the Ansible playbook, some packages &amp; Ansible collections must be installed before in the control node:</p>
+<pre><code>sudo apt-add-repository ppa:ansible/ansible
+sudo apt update
+sudo apt-get install curl python3-pip ansible
+ansible-galaxy collection install community.general community.docker kubernetes.core
+</code></pre>
+<p>In Ubuntu 18.04:</p>
+<pre><code>sudo apt-get install python3-distutils
+python3 get-pip.py
+python3 -m pip install ansible
+ansible-galaxy collection install community.general community.docker kubernetes.core
+</code></pre>
+<p><strong>For RP1, the public IP of the server should be whitelisted, please contact Vicomtech to add it to the list.</strong></p>
+<h2 id="deploying-the-edge-stack">Deploying the Edge Stack</h2>
+<p>After installing the previous requirements, the Ansible playbook should be downloaded:</p>
+<pre><code>curl -s https://raw.githubusercontent.com/5gmeta/orchestrator/main/deploy/EdgeDeployment.yaml -o EdgeDeployment.yaml
+</code></pre>
+<p>Then, before running it, the playbook's hosts field or Ansible's inventory file must be modified to match the Ubuntu machine. Vars section must be also filled with the user provided values. After that it can be runned:</p>
+<pre><code>ansible-playbook EdgeDeployment.yaml
+</code></pre>
+<p>Once deployed you can access the different services in the next ports:</p>
+<ul>
+<li>K8s API in port 6443</li>
+<li>K8s UI in port 8080</li>
+<li>OSM UI in port <a href="http://127.0.0.1:80">80</a></li>
+<li>OSM API (Orchestration API) in port 9999</li>
+<li>Grafana UI in port <a href="http://127.0.0.1:3000">3000</a></li>
+<li>Prometheus UI in port <a href="http://127.0.0.1:9090">9090</a></li>
+<li>Alert Manager UI in port <a href="http://127.0.0.1:9093">9093</a></li>
+<li>5GMETA Edge Instance API in port 5000</li>
+<li>5GMETA Registration API in port 12346</li>
+<li>5GMETA Message-Broker in port 5673 (SB) and 61616 (NB)</li>
+<li>5GMETA Video-Broker in port 8443</li>
+</ul>
+<p>Also you can check the status of OSM ressources managed by Kubernetes in the following way:</p>
+<pre><code>kubectl get all -n osm
+</code></pre>
+<h2 id="re-deploying-starting-from-a-specific-task-of-the-ansible-playbook">Re-deploying starting from a specific task of the Ansible playbook</h2>
+<p>If the deployement fails for any reason and you want to play again the playbook starting from a specific task, then you do the following:</p>
+<pre><code># For running the playbook starting from the "Get IP geolocation data" task
+ansible-playbook EdgeDeployment.yaml --start-at-task="Get IP geolocation data"
+</code></pre>
+<h2 id="executing-only-a-pecific-task-of-the-ansible-playbook">Executing only a pecific task of the Ansible playbook</h2>
+<p>If instead you want to execute a single task of the playbook, then you can force Ansible to ask for a confirmation before executing the next step, and abort execution when needed:</p>
+<pre><code># For running only the "Get IP geolocation data" task, abort execution (ctrl+c) when asked to confirm execution of the following step
+
+ansible-playbook playbook.yml --step --start-at-task="install packages"
+</code></pre>
+<h2 id="cleaning-deployment">Cleaning deployment</h2>
+<p>To clean the deployment, use the <strong>cleanDeployment.sh</strong> script.</p>
+<h2 id="knownpotential-issues-related-to-ansible-playbook-execution">Known/Potential issues related to Ansible playbook execution</h2>
+<ul>
+<li>
+<h3 id="you-are-runninng-the-installer-as-root">You are runninng the installer as root</h3>
+This error can be resolved by running the playbook with the current user and not <strong>the root user</strong>, while having sudo privileges:<p>sudo -u $USER ansible-playbook EdgeDeployment.yaml --ask-become-pass</p>
+</li>
+<li>
+<h3 id="couldnt-resolve-moduleaction-communitygeneralipinfoio_facts">Couldn't resolve module/action 'community.general.ipinfoio_facts'</h3>
+</li>
+</ul>
+<p>This error is due to the usage of an old version of ansible, and can be easily resolved through:</p>
+<pre><code>sudo apt purge ansible
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt update
+sudo apt install ansible
+ansible-galaxy collection install community.general community.docker kubernetes.core --force
+</code></pre>
+<ul>
+<li>
+<h3 id="cannot-uninstall-pyyaml">Cannot uninstall 'PyYAML'</h3>
+</li>
+</ul>
+<p>PyYAML is potentially installed and already bundled into some core packages of the distro. To force installation of required PyYAML version:</p>
+<pre><code>sudo pip install --ignore-installed PyYAML
+</code></pre>
+<h2 id="knownpotential-issues-related-to-docker">Known/Potential issues related to Docker</h2>
+<ul>
+<li>
+<h3 id="docker-credential-secretservice-failure">Docker-credential-secretservice failure</h3>
+</li>
+</ul>
+<p>If the playbook fails in Docker login task (e.g <strong>Docker-credential-secretservice fails on Ubuntu 18.04: error getting credentials - err: exit status 1, out:GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.secrets was not provided by any .service files</strong>:), run the following commannd and then the ansible again:</p>
+<pre><code>sudo apt install gnupg2 passls -la
+</code></pre>
+<h2 id="knownpotential-issues-related-to-kubernetes">Known/Potential issues related to Kubernetes</h2>
+<ul>
+<li>
+<h3 id="failure-of-kubernetes-cluster-init-due-to-unvalidated-docker-version">Failure of Kubernetes Cluster init due to unvalidated docker version</h3>
+</li>
+</ul>
+<p>This error is due to the usage of an unvalidated docker version. To fix it add the following arguments like follows:</p>
+<pre><code># Not working
+- kubeadm init --config {{ ansible_env.HOME }}/5gmeta/tmp/cluster-config.yaml &gt; {{ ansible_env.HOME }}/5gmeta/logs/cluster_init
+
+# Working
+- kubeadm init --ignore-preflight-errors=SystemVerification --config {{ ansible_env.HOME }}/5gmeta/tmp/cluster-config.yaml &gt; {{ ansible_env.HOME }}/5gmeta/logs/cluster_init
+</code></pre>
+<ul>
+<li>
+<h3 id="failure-with-validating-the-existence-and-emptiness-of-directory-varlibetcd">Failure with validating the existence and emptiness of directory /var/lib/etcd</h3>
+</li>
+</ul>
+<p>This error can be easily fixed by removing the directory:</p>
+<pre><code>sudo rm /var/lib/etcd
+</code></pre>
+<h2 id="knownpotential-issues-related-to-osm">Known/Potential issues related to OSM</h2>
+<ul>
+<li>
+<h3 id="failure-of-osm-install-with-several-deployements-still-pending">Failure of OSM install with several deployements still pending</h3>
+If OSM installation fails due to pending deployements, like below:<p>5 of 9 deployments starting:
+                lcm 0/1 0
+                mon 0/1 0
+                nbi 0/1 0
+                pol 0/1 0
+                ro  0/1 0
+SYSTEM IS BROKEN
+OSM is not healthy, but will probably converge to a healthy state soon.
+Check OSM status with: kubectl -n osm get all
+DONE</p>
+</li>
+</ul>
+<p>Identifying the root cause can be difficult. Still a potential solution is to check the logs related to such deployements like below:</p>
+<pre><code>sudo kubectl get all -n osm
+
+#command output!!!
+NAME                                READY   STATUS     RESTARTS   AGE
+pod/grafana-855d96c47d-w4xfs        2/2     Running    0          66m
+pod/kafka-0                         1/1     Running    3          66m
+pod/keystone-7d9864f8f5-qx4dd       1/1     Running    0          66m
+pod/lcm-556b46f977-c2ljl            0/1     Init:0/1   0          66m
+pod/modeloperator-946f64449-mffbc   1/1     Running    0          66m
+pod/mon-577c8fc975-9kndp            0/1     Init:0/1   0          66m
+pod/mysql-0                         1/1     Running    0          66m
+pod/nbi-7886459c9f-mldhw            0/1     Init:0/1   0          66m
+pod/ng-ui-7d98c6568f-d8862          1/1     Running    0          66m
+pod/pol-7f86867d95-vm762            0/1     Init:0/1   0          66m
+pod/prometheus-0                    1/1     Running    0          66m
+pod/ro-ddbc9f888-6jmlp              0/1     Init:0/1   0          66m
+pod/zookeeper-0                     1/1     Running    0          66m
+</code></pre>
+<p>Then it is possible to get details related to a specific deployment:</p>
+<pre><code>kubectl describe pod/lcm-556b46f977-c2ljl -n osm
+
+#command output!!!
+Name:         lcm-556b46f977-c2ljl
+Namespace:    osm
+Priority:     0
+....
+....
+Init Containers:
+kafka-ro-mongo-test:
+    Container ID:  docker://8c4fb0ce225af5c4419441c21b1493da252441b83fbe963d4ef7125c44389591
+    Image:         alpine:latest
+    Image ID:      docker-pullable://
+    ....
+    ....
+</code></pre>
+<p>And finally to check its logs and identify the root cause</p>
+<pre><code>kubectl logs pod/lcm-556b46f977-c2ljl-n osm -c kafka-ro-mongo-test
+
+#command output!!!
+nc: bad address 'mongodb-k8s'
+kafka (10.244.0.25:9092) open
+nc: bad address 'mongodb-k8s'
+kafka (10.244.0.25:9092) open
+</code></pre>
+<ul>
+<li>
+<h3 id="osm-command-returning-modulenotfounderror-no-module-named-prettytable">OSM command returning "ModuleNotFoundError: No module named 'prettytable'</h3>
+</li>
+</ul>
+<p>This error can be easily fixed by:</p>
+<pre><code>sudo apt install python3-prettytable
+</code></pre>
+<ul>
+<li>
+<h3 id="osm-command-returning-typeerror-init-got-an-unexpected-keyword-argument-case_sensitive">OSM command returning TypeError: <strong>init</strong>() got an unexpected keyword argument 'case_sensitive'</h3>
+</li>
+</ul>
+<p>This error can be easily fixed by:</p>
+<pre><code>pip3 install -U click
+</code></pre>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

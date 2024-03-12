@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>5GMETA Cloud Architecture - </title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "5GMETA Cloud Architecture";
+        var mkdocs_page_input_path = "platform-walkthrough.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/Logo_5G_META_reversed_on_dark_backgr_only.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".."></a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">5GMETA Cloud Architecture</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="5gmeta-cloud-architecture">5GMETA Cloud Architecture</h1>
+<h2 id="features">Features:</h2>
+<ul>
+<li>2 worker nodes (1 min / 4 max)<ul>
+<li>T3a.large instances (2vCPUs 8GiB Memory)</li>
+<li>eu-west-3 region (Paris)</li>
+</ul>
+</li>
+<li>An Amazon EKS cluster consists of two primary components:<ul>
+<li>The Amazon EKS control plane</li>
+<li>Amazon EKS nodes that are registered with the control plane</li>
+</ul>
+</li>
+<li>The Amazon EKS control plane consists of control plane nodes that run the - Kubernetes software, such as etcd and the Kubernetes API server. The control plane runs in an account managed by AWS, and the Kubernetes API is exposed via the Amazon EKS endpoint associated with your cluster.</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>AWS CLI: <a href="https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html">https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html</a></li>
+<li>Kubectl: <a href="https://kubernetes.io/docs/tasks/tools/">https://kubernetes.io/docs/tasks/tools/#kubectl</a></li>
+<li>Helm: <a href="https://helm.sh/docs/intro/install/">https://helm.sh/docs/intro/install/</a></li>
+<li>AWS EKS Masterclass: <a href="https://github.com/stacksimplify/aws-eks-kubernetes-masterclass">https://github.com/stacksimplify/aws-eks-kubernetes-masterclass</a>, <a href="https://www.stacksimplify.com/aws-eks/">https://www.stacksimplify.com/aws-eks/</a></li>
+</ul>
+<h2 id="platform-access">Platform  access</h2>
+<ul>
+<li>Access request: <a href="https://vicomtech.sharepoint.com/:x:/s/5GMETA2/EWkBlYytyP5AvA1A-tbzs3MBhRXfhsrLLddMc6c0mpgrrA?e=TugssA">https://vicomtech.sharepoint.com/<span class="twemoji-64-symbols _274c" title=":x:">❌</span>/s/5GMETA2/EWkBlYytyP5AvA1A-tbzs3MBhRXfhsrLLddMc6c0mpgrrA?e=TugssA</a></li>
+<li>AWS CLI credentials  will be provided  by VICOM: aws configure</li>
+<li>Using AWS CLI and provided  credentials  generate  kubeconfig file with  following  command: <code>aws  eks  update-kubeconfig --name 5gmeta-cloud --role-arn  arn:aws:iam::&lt;idaws&gt;:role/k8s5gmeta</code></li>
+<li>To change default namespace: <code>kubectl config set-context --current --namespace=&lt;my-namespace&gt;</code></li>
+<li>The  config file will be created in kubectl default path: <code>~/.kube/config</code><ul>
+<li>Kubecofig enables kubectl to securely access the Kubernetes Cluster</li>
+<li>Kubeconfig is a YAML file that contains either a username and password combination or a secure token that when read programmatically removes the need for the Kubernetes client to ask for interactive authentication</li>
+</ul>
+</li>
+</ul>
+<h2 id="modules-deployment-in-the-cloud-platform">Modules deployment in the cloud platform</h2>
+<p>Deployment  of apps: Helm charts or K8s manifest files:
+- Manifest files:
+    - <a href="https://kubernetes.io/docs/tutorials/">https://kubernetes.io/docs/tutorials/</a>
+    - <a href="https://www.mirantis.com/blog/introduction-to-yaml-creating-a-kubernetes-deployment/">https://www.mirantis.com/blog/introduction-to-yaml-creating-a-kubernetes-deployment/</a>
+    - <a href="https://docs.aws.amazon.com/eks/latest/userguide/sample-deployment.html">https://docs.aws.amazon.com/eks/latest/userguide/sample-deployment.html</a>
+- Helm Charts:
+    - <a href="https://helm.sh/docs/chart_template_guide/getting_started/">https://helm.sh/docs/chart_template_guide/getting_started/</a>
+    - <a href="https://docs.bitnami.com/tutorials/create-your-first-helm-chart/">https://docs.bitnami.com/tutorials/create-your-first-helm-chart/</a>
+    - <a href="https://veducate.co.uk/how-to-create-helm-chart/">https://veducate.co.uk/how-to-create-helm-chart/</a>
+    - <a href="https://jfrog.com/blog/10-helm-tutorials-to-start-your-kubernetes-journey/">https://jfrog.com/blog/10-helm-tutorials-to-start-your-kubernetes-journey/</a></p>
+<p>All  resources  to be deployed in the  cloud  MUST BE in the  project’s  offical  repositories:
+- DockerHub: <a href="https://hub.docker.com/orgs/5gmeta">https://hub.docker.com/orgs/5gmeta</a>
+- Helm Chart repository: <a href="https://github.com/5gmeta/helmcharts">https://github.com/5gmeta/helmcharts</a>
+- GitHub (Manifest files in each module repository):</p>
+<h2 id="communication-between-pods">Communication  between  pods</h2>
+<ul>
+<li>By default, pods can communicate with each other by their IP address, regardless of the namespace they're in. You can see the IP address of each pod with:</li>
+<li>kubectl get pods -o wide –n <my-namespace></li>
+<li>Decision taken on limits of connectivity across pods</li>
+<li>All pods are "in a LAN“</li>
+<li>No expected access from third-parties to internal IPs (<a href="https://projectcalico.docs.tigera.io/security/calico-network-policy">https://projectcalico.docs.tigera.io/security/calico-network-policy</a>)</li>
+<li>However, the normal way to communicate within a cluster is through Service resources.  A Service also has an IP address and additionally a DNS name. A Service is backed by a set of pods. The Service forwards requests to itself to one of the backing pods. The fully qualified DNS name of a Service is: <code>&lt;service-name&gt;.&lt;service-namespace&gt;.svc.cluster.local</code></li>
+<li>This can be resolved to the IP address of the Service from anywhere in the cluster (regardless of namespace).</li>
+<li><a href="https://kubebyexample.com/en/learning-paths/application-development-kubernetes/lesson-3-networking-kubernetes/exposing">https://kubebyexample.com/en/learning-paths/application-development-kubernetes/lesson-3-networking-kubernetes/exposing</a></li>
+</ul>
+<h2 id="persistent-storage">Persistent storage</h2>
+<ul>
+<li>Amazon EBS CSI driver already installed -&gt; Default storage class</li>
+<li>Every Persistent Volume Claim (PVC) will create an AWS EBS Volume</li>
+<li>Volume Integrity is ensured</li>
+<li>More:<ul>
+<li><a href="https://loft.sh/blog/kubernetes-persistent-volumes-examples-and-best-practices/">https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/</a></li>
+<li><a href="https://loft.sh/blog/kubernetes-persistent-volumes-examples-and-best-practices/">https://loft.sh/blog/kubernetes-persistent-volumes-examples-and-best-practices/</a></li>
+<li><a href="https://github.com/kubernetes-sigs/aws-ebs-csi-driver/tree/master/examples/kubernetes">https://github.com/kubernetes-sigs/aws-ebs-csi-driver/tree/master/examples/kubernetes</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="services-exposure-to-the-outside-world">Services exposure to the outside world</h2>
+<ul>
+<li>NodePort:  Declaring a service as NodePort exposes the Service on each Node’s IP at the NodePort (a fixed port for that Service, in the default range of 30000-32767). You can then access the Service from outside the cluster by requesting <NodeIp>:<NodePort>. Every service you deploy as NodePort will be exposed in its own port, on every Node.</li>
+<li>LoadBalancer:  Declaring a service of type LoadBalancer exposes it externally using a cloud provider’s load balancer. The cloud provider will provision a load balancer for the Service and map it to its automatically assigned NodePort. NLB is created in AWS for each service.</li>
+<li>Ingress:  Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource. ALB is created in AWS. One for all ingress resources.</li>
+<li>More:<ul>
+<li><a href="https://blog.ovhcloud.com/getting-external-traffic-into-kubernetes-clusterip-nodeport-loadbalancer-and-ingress/">https://blog.ovhcloud.com/getting-external-traffic-into-kubernetes-clusterip-nodeport-loadbalancer-and-ingress/</a></li>
+<li><a href="https://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/">https://alesnosek.com/blog/2017/02/14/accessing-kubernetes-pods-from-outside-of-the-cluster/</a></li>
+<li><a href="https://www.eksworkshop.com/beginner/130_exposing-service/ingress/">https://www.eksworkshop.com/beginner/130_exposing-service/ingress/</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="monitoring-of-modules">Monitoring  of modules</h2>
+<ul>
+<li>Prometheus and Grafana  already  deployed:<ul>
+<li><code>PROMETHEUS=$(kubectl get pod -n monitoring -l app.kubernetes.io/name=prometheus -o jsonpath='{.items[0].metadata.name}')</code></li>
+<li><code>GRAFANA=$(kubectl get pod -n monitoring -l app.kubernetes.io/name=grafana -o jsonpath='{.items[0].metadata.name}')</code></li>
+<li><code>kubectl port-forward -n monitoring $PROMETHEUS 9090 &amp;</code></li>
+<li><code>kubectl port-forward -n monitoring $GRAFANA 3000 &amp;</code></li>
+</ul>
+</li>
+</ul>
+<h2 id="pipeline-development-and-deployment">Pipeline development and deployment</h2>
+<ul>
+<li>Flow for deploying a pipeline in an Edge Server:<ol>
+<li>Receive a request from the cloud platform</li>
+<li>Check if enough resources available in the node for the selected SLA</li>
+<li>If enough, save the reservation in the DDBB</li>
+<li>Instantiate the pipeline through OSM</li>
+</ol>
+</li>
+<li>Development of a pipeline:<ol>
+<li>Docker images: <a href="https://hub.docker.com/orgs/5gmeta/repositories">https://hub.docker.com/orgs/5gmeta/repositories</a></li>
+<li>Helm chart to deploy in K8s: <a href="https://github.com/5gmeta/helmcharts">https://github.com/5gmeta/helmcharts</a></li>
+<li>OSM descriptors to deploy the Helm chart: <a href="https://github.com/5gmeta/vnfdescriptors">https://github.com/5gmeta/vnfdescriptors</a></li>
+</ol>
+</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

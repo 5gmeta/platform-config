@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Kubernetes Cluster Access Grant - </title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Kubernetes Cluster Access Grant";
+        var mkdocs_page_input_path = "cloud-access-grant.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/Logo_5G_META_reversed_on_dark_backgr_only.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".."></a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Kubernetes Cluster Access Grant</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="kubernetes-cluster-access-grant">Kubernetes Cluster Access Grant</h1>
+<h2 id="adding-a-new-user">Adding a new user</h2>
+<p>To add a new user in an already configured EKS cluster:</p>
+<ol>
+<li>Create the user in <a href="https://us-east-1.console.aws.amazon.com/iamv2/home?region=us-east-1#/users">AWS EKS</a><ul>
+<li>Username: user's e-mail address</li>
+<li>Add it to <strong>k8s5gmeta</strong> group</li>
+<li>Create <strong>Access keys</strong> for the user<ul>
+<li>Go to the user</li>
+<li>Security credentials tab</li>
+<li>Create access key</li>
+<li>Check Command Line Interface</li>
+<li>Download csv file</li>
+</ul>
+</li>
+<li>Save the generated credentiales in <a href="https://github.com/5gmeta/platform-config/tree/main/src/credentials/AWS%20Users">AWS Users</a></li>
+</ul>
+</li>
+<li>Create a namespace for the user's company (If it is not already created): <code>kubectl create namespace &lt;COMPANY&gt;</code></li>
+<li>Apply the <a href="">5gmeta-cluster-access.yaml</a> manifest file to the namespace: <code>kubectl apply -f 5gmeta-cluster-access.yaml -n &lt;COMPANY&gt;</code>. To get all the namespaces that have this role (the namespaces the new user will have access to) run: <code>kubectl get role -A | grep 5gmeta-access-role</code></li>
+<li>
+<p>Send the credentials to the user and inform how to generate the kubeconfig file. Sample mail: 
+    ````
+    Dear XXX,</p>
+<p>I am sending you the credentials for accessing the cloud platform:</p>
+<p>https://onetimesecret.com/</p>
+<p>You can only open the link once, so save the credentials locally :)</p>
+<p>You need to install aws cli version2.7.29:
+* curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.7.29.zip" -o "awscliv2.zip"*
+* unzip awscliv2.zip
+* sudo ./aws/install (if you have a previous version installed -&gt; sudo ./aws/install --update</p>
+<p>and <a href="https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/">kubectl</a> version 1.26.0.
+* curl -LO https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl
+* sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl</p>
+<p>Once installed sign-in into AWS with the following command: aws configure. IMPORTANT, select “eu-west-3” region and "text" as output format.</p>
+<p>Then generate the kubeconfig file with the following command: aws eks update-kubeconfig --name 5gmeta-cloud --role-arn arn:aws:iam::<idaws>:role/k8s5gmeta</p>
+<p>After running this command, the kubeconfig file is generated and you will be able to access the cloud cluster with kubectl.</p>
+<p>You have access to <COMPANY> namespace. Please configure it as the default namespace in kubectl with the following command: kubectl config set-context --current --namespace=<COMPANY></p>
+<p>Please do not hesitate to contact me if you have any doubt.</p>
+<p>Regards,</p>
+<p>XXX
+````</p>
+</li>
+</ol>
+<p>The steps to generate the kubeconfug file:</p>
+<pre><code>aws configure
+aws eks update-kubeconfig --name 5gmeta-cloud --role-arn arn:aws:iam::&lt;idaws&gt;:role/k8s5gmeta
+kubectl config set-context --current --namespace=&lt;COMPANY&gt;
+</code></pre>
+<h2 id="configuration-of-the-cluster">Configuration of the cluster</h2>
+<p>For deploying all the necessary stuff to add users to an EKS hosted K8s cluster, the following tutorial has been followed: <a href="https://www.eksworkshop.com/beginner/091_iam-groups/">https://www.eksworkshop.com/beginner/091_iam-groups/</a></p>
+<p>Run the following commands:</p>
+<pre><code>aws iam create-group --group-name k8sAdmin
+aws iam create-group --group-name k8s5gmeta
+ACCOUNT_ID=&lt;idaws&gt;
+POLICY=$(echo -n '{&quot;Version&quot;:&quot;2012-10-17&quot;,&quot;Statement&quot;:[{&quot;Effect&quot;:&quot;Allow&quot;,&quot;Principal&quot;:{&quot;AWS&quot;:&quot;arn:aws:iam::'; echo -n &quot;$ACCOUNT_ID&quot;; echo -n ':root&quot;},&quot;Action&quot;:&quot;sts:AssumeRole&quot;,&quot;Condition&quot;:{}}]}')
+echo ACCOUNT_ID=$ACCOUNT_ID
+echo POLICY=$POLICY
+aws iam create-role --role-name k8sAdmin --description &quot;Kubernetes administrator role (for AWS IAM Authenticator for Kubernetes).&quot; --assume-role-policy-document &quot;$POLICY&quot; --output text --query 'Role.Arn'
+aws iam create-role --role-name k8s5gmeta --description &quot;5gmeta role for partner access (for AWS IAM Authenticator for Kubernetes).&quot; --assume-role-policy-document &quot;$POLICY&quot; --output text --query 'Role.Arn'
+
+ADMIN_GROUP_POLICY=$(echo -n '{
+  &quot;Version&quot;: &quot;2012-10-17&quot;,
+  &quot;Statement&quot;: [
+    {
+      &quot;Sid&quot;: &quot;AllowAssumeOrganizationAccountRole&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: &quot;sts:AssumeRole&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:iam::'; echo -n &quot;$ACCOUNT_ID&quot;; echo -n ':role/k8sAdmin&quot;
+    },
+    {
+      &quot;Sid&quot;: &quot;AllowEksDescribeCluster&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: &quot;eks:DescribeCluster&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:eks:eu-west-3:&lt;idaws&gt;:cluster/5gmeta-cloud&quot;
+    }
+  ]
+}')
+echo ADMIN_GROUP_POLICY=$ADMIN_GROUP_POLICY
+
+aws iam put-group-policy \
+--group-name k8sAdmin \
+--policy-name k8sAdmin-policy \
+--policy-document &quot;$ADMIN_GROUP_POLICY&quot;
+
+5GMETA_GROUP_POLICY=$(echo -n '{
+  &quot;Version&quot;: &quot;2012-10-17&quot;,
+  &quot;Statement&quot;: [
+    {
+      &quot;Sid&quot;: &quot;AllowAssumeOrganizationAccountRole&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: &quot;sts:AssumeRole&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:iam::'; echo -n &quot;$ACCOUNT_ID&quot;; echo -n ':role/k8s5gmeta&quot;
+    },
+    {
+      &quot;Sid&quot;: &quot;AllowEksDescribeCluster&quot;,
+      &quot;Effect&quot;: &quot;Allow&quot;,
+      &quot;Action&quot;: &quot;eks:DescribeCluster&quot;,
+      &quot;Resource&quot;: &quot;arn:aws:eks:eu-west-3:&lt;idaws&gt;:cluster/5gmeta-cloud&quot;
+    }
+  ]
+}')
+echo 5GMETA_GROUP_POLICY=$5GMETA_GROUP_POLICY
+
+aws iam put-group-policy --group-name k8s5gmeta --policy-name k8s5gmeta-policy --policy-document &quot;$5GMETA_GROUP_POLICY&quot;
+aws iam list-groups
+eksctl create iamidentitymapping --cluster 5gmeta-cloud --arn arn:aws:iam::${ACCOUNT_ID}:role/k8sAdmin --username admin --group system:masters
+eksctl create iamidentitymapping --cluster 5gmeta-cloud --arn arn:aws:iam::${ACCOUNT_ID}:role/k8s5gmeta --username &lt;username&gt;
+kubectl get cm -n kube-system aws-auth -o yaml
+eksctl get iamidentitymapping --cluster 5gmeta-cloud
+</code></pre>
+<p>Create <a href="https://github.com/5gmeta/platform-config/blob/main/src/cluster-admin/5gmeta-cluster-access.yaml">5gmeta-cluster-access.yaml</a> manifest file and apply it to namespaces that will access k8s5gmeta group users:</p>
+<pre><code>---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: 5gmeta-access-role
+rules:
+  - apiGroups:
+      - &quot;&quot;
+      - &quot;apps&quot;
+      - &quot;batch&quot;
+      - &quot;extensions&quot;
+      - &quot;autoscaling&quot;
+    resources: [&quot;*&quot;]
+#    resources:
+#      - &quot;configmaps&quot;
+#      - &quot;cronjobs&quot;
+#      - &quot;deployments&quot;
+#      - &quot;events&quot;
+#      - &quot;ingresses&quot;
+#      - &quot;jobs&quot;
+#      - &quot;pods&quot;
+#      - &quot;pods/attach&quot;
+#      - &quot;pods/exec&quot;
+#      - &quot;pods/log&quot;
+#      - &quot;pods/portforward&quot;
+#      - &quot;secrets&quot;
+#      - &quot;services&quot;
+    verbs: [&quot;*&quot;]
+#    verbs:
+#      - &quot;create&quot;
+#      - &quot;delete&quot;
+#      - &quot;describe&quot;
+#      - &quot;get&quot;
+#      - &quot;list&quot;
+#      - &quot;patch&quot;
+#      - &quot;update&quot;
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: 5gmeta-role-binding
+subjects:
+- kind: User
+  name: &lt;username&gt;
+roleRef:
+  kind: Role
+  name: 5gmeta-access-role
+  apiGroup: rbac.authorization.k8s.io
+</code></pre>
+<p>To get all the namespaces that have this role (the namespaces the new user will have access to) run: <code>kubectl get role -A | grep 5gmeta-access-role</code></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

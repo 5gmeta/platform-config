@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Platform reboot - </title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Platform reboot";
+        var mkdocs_page_input_path = "troubleshooting.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/Logo_5G_META_reversed_on_dark_backgr_only.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".."></a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Platform reboot</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="platform-reboot">Platform reboot</h1>
+<p>If k8s nodes are rebooted, some ips must be modified</p>
+<h2 id="get-new-public-ips-from-k8s-nodes">Get new public ips from k8s nodes</h2>
+<p>Go to: <a href="https://eu-west-3.console.aws.amazon.com/eks/home?region=eu-west-3#/clusters/5gmeta-cloud?selectedTab=cluster-compute-tab">https://eu-west-3.console.aws.amazon.com/eks/home?region=eu-west-3#/clusters/5gmeta-cloud?selectedTab=cluster-compute-tab</a></p>
+<p>Go to console Amazon web page -&gt; EKS -&gt; click on 5gmeta-cloud -&gt; compute tab
+Open each compute and click on instance. There you can find public IP</p>
+<h2 id="add-ips-to-security-groups-in-amazon-eks">Add ips to security groups in Amazon EKS</h2>
+<p>Add new ips in pl-0f53017bf8a4dc952 prefix list: <a href="https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#PrefixListDetails:PrefixListId=pl-0f53017bf8a4dc952">https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#PrefixListDetails:PrefixListId=pl-0f53017bf8a4dc952</a>
+Check that pl-0f53017bf8a4dc952 prefix list is allowed to access 61616 TCP port in security group sg-07e47c7047324400b <a href="https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#SecurityGroup:groupId=sg-07e47c7047324400b">https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#SecurityGroup:groupId=sg-07e47c7047324400b</a></p>
+<h2 id="reconfigure-kafka-cluster">Reconfigure Kafka cluster</h2>
+<p>Add new ips in [https://github.com/5gmeta/stream-data-gateway/blob/main/src/prod-version/cp-helm-charts/charts/cp-kafka/values.yaml]</p>
+<p>And reinstall helm chart:</p>
+<ul>
+<li>helm get values kafkacluster -n kafka</li>
+<li>helm uninstall kafkacluster -n kafka</li>
+<li>kubectl delete namespace kafka</li>
+<li>from stream-data-gateway/src/prod-version git folder<ul>
+<li>helm install kafkacluster ./cp-helm-charts --create-namespace -n kafka</li>
+</ul>
+</li>
+</ul>
+<h2 id="reconfigure-registration-api">Reconfigure Registration API</h2>
+<p>Update access to 5GMETA database: Add one of k8s nodes new ip address in <a href="https://github.com/5gmeta/helmcharts/blob/main/charts/registrationapi-chart/values.yaml">https://github.com/5gmeta/helmcharts/blob/main/charts/registrationapi-chart/values.yaml</a></p>
+<p>Rebuild registration API:
+- helm package ./charts/* -d ./repository/
+- helm repo index ./repository/
+- Push the changes to the repository</p>
+<p>Ask parters to update Helm charts from their MECS:</p>
+<pre><code>        Log in into your MEC
+        Update 5GMETA helm repositories
+            helm repo update 5gmeta
+        Uninstall previous registration-api helm
+            helm uninstall registration-api -n 5gmeta
+        Install updated registration-api helm
+            helm install registration-api 5gmeta/registrationapi-chart  -n 5gmeta
+</code></pre>
+<h2 id="update-all-examples-and">Update all examples and</h2>
+<h2 id="add-load-balancer-ips-to-allowed-ips">Add load balancer ips to allowed ips</h2>
+<p>Ping to 5gmeta-platform.eu or to DNS hostname (get from https://eu-west-3.console.aws.amazon.com/ec2/home?region=eu-west-3#LoadBalancers:). It will return 3 ips. Copy them into pl-0f53017bf8a4dc952 prefix list: <a href="https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#PrefixListDetails:PrefixListId=pl-0f53017bf8a4dc952">https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#PrefixListDetails:PrefixListId=pl-0f53017bf8a4dc952</a></p>
+<h2 id="reboot-load-balancer-apisix-gateway">Reboot Load balancer (APISIX/ GATEWAY)</h2>
+<p>If new whitelisted ip addresses are needed, a new prefix list (<a href="https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#ManagedPrefixLists:">https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#ManagedPrefixLists:</a>) with them should be filled. That list must have access to the ports 80 (HTTP) and 443 (HTTPS). To do that we have to create a new security group that points to new prefix list.</p>
+<p>Best option is to copy <a href="https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#SecurityGroup:groupId=sg-06755943a0511d718">https://eu-west-3.console.aws.amazon.com/vpc/home?region=eu-west-3#SecurityGroup:groupId=sg-06755943a0511d718</a> to a new rule and add prefix list as source ip addresses. </p>
+<p>Add that created security to [https://github.com/5gmeta/helmcharts/blob/main/charts/gateway-chart/values.yaml] and rebuild helm chart and uninstall/install from EKS.</p>
+<pre><code>alb.ingress.kubernetes.io/security-groups: sg-06755943a0511d718,new_security_group
+</code></pre>
+<h3 id="rebuild-helm-charts">Rebuild Helm charts</h3>
+<ul>
+<li>helm package ./charts/* -d ./repository/</li>
+<li>helm repo index ./repository/</li>
+<li>Push the changes to the repository</li>
+</ul>
+<h3 id="uninstall-install-gateway">Uninstall / Install Gateway</h3>
+<ul>
+<li>helm uninstall apisix-service -n akka</li>
+<li>helm install apisix-service 5gmeta-helm/gateway-standalone -n akka</li>
+</ul>
+<h3 id="update-5gmeta-platformeu-hostname">Update 5gmeta-platform.eu hostname</h3>
+<p>When a new Load balancer is deployed, DNS hostname is modified, so it must be changed in Amazon DNS manager:</p>
+<p>To check Load balancer hostname go to [<a href="https://eu-west-3.console.aws.amazon.com/ec2/home?region=eu-west-3#LoadBalancers:">https://eu-west-3.console.aws.amazon.com/ec2/home?region=eu-west-3#LoadBalancers:</a> and replace it in <a href="https://us-east-1.console.aws.amazon.com/route53/v2/home#Dashboard">https://us-east-1.console.aws.amazon.com/route53/v2/home#Dashboard</a>.
+Edit hosted zones and modify A record from 5gmeta-platform.eu adding DNS hosted zone +dualstack: dualstack.k8s-5gmetaingress-253cf23a0c-1635503379.eu-west-3.elb.amazonaws.com for example.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

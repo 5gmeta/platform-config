@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Cloud platform deployment - </title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Cloud platform deployment";
+        var mkdocs_page_input_path = "cloud-deployment.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/Logo_5G_META_reversed_on_dark_backgr_only.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".."></a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Cloud platform deployment</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cloud-platform-deployment">Cloud platform deployment</h1>
+<p>For deploying 5GMETA Cloud Platform, AWS EKS solution has been chosen. Amazon Elastic Kubernetes Service (<a href="https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html">Amazon EKS</a>) is a managed service that you can use to run Kubernetes on AWS without needing to install, operate, and maintain your own Kubernetes control plane or nodes. Kubernetes is an open-source system for automating the deployment, scaling, and management of containerized applications.</p>
+<p>Amazon EKS runs a single tenant Kubernetes control plane for each cluster. The control plane infrastructure isn't shared across clusters or AWS accounts. The control plane consists of at least two API server instances and three <code>etcd</code> instances that run across three Availability Zones within an AWS Region. The control plane runs in an account managed by AWS, and the Kubernetes API is exposed via the Amazon EKS endpoint associated with your cluster. Each Amazon EKS cluster control plane is single-tenant and unique, and runs on its own set of Amazon EC2 instances.</p>
+<p>The workloads are deployed in Amazon EKS nodes that are registered with the control plane. They are deployed in EC2 service.</p>
+<p>The following picture shows the architecurte of an AWS EKS cluster:</p>
+<p><img alt="EKS Architecture" src="../img/EKS%20Architecture.png" /></p>
+<h2 id="prerequisites">Prerequisites</h2>
+<p>Many procedures of the guide use the following command line tools:</p>
+<ul>
+<li>
+<p><code>kubectl</code>  – A command line tool for working with Kubernetes clusters. For more information, see  <a href="https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html">Installing or updating kubectl</a>.
+    ````
+    curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl</p>
+<p>curl -LO https://dl.k8s.io/release/v1.21.0/bin/linux/amd64/kubectl</p>
+<p>sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl</p>
+<p>kubectl version --client
+<code>-   `eksctl`  – A command line tool for working with EKS clusters that automates many individual tasks. For more information, see  [Installing or updating eksctl](https://docs.aws.amazon.com/eks/latest/userguide/eksctl.html).</code>
+curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp</p>
+<p>sudo mv /tmp/eksctl /usr/local/bin</p>
+<p>eksctl version
+````</p>
+</li>
+<li>
+<p><code>AWS CLI</code>  – A command line tool for working with AWS services, including Amazon EKS. For more information, see  <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html">Installing, updating, and uninstalling the AWS CLI</a>  in the AWS Command Line Interface User Guide. After installing the AWS CLI, we recommend that you also configure it. For more information, see  <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html#cli-configure-quickstart-config">Quick configuration with  <code>aws configure</code></a>  in the AWS Command Line Interface User Guide.
+    ````
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"</p>
+<p>unzip awscliv2.zip</p>
+<p>sudo ./aws/install</p>
+<p>aws –version</p>
+<p>aws configure
+<code>-   `helm`  – Helm helps you manage Kubernetes applications — Helm Charts help you define, install, and upgrade even the most complex Kubernetes application. For more information, see [Installing Helm](https://helm.sh/docs/intro/install/).</code>
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3</p>
+<p>chmod 700 get_helm.sh</p>
+<p>./get_helm.sh</p>
+<p>helm version
+````</p>
+</li>
+</ul>
+<h2 id="step-1-create-amazon-eks-cluster-and-nodes">Step 1: Create Amazon EKS cluster and nodes</h2>
+<p>Before creating a cluster and nodes for production use, familiarize yourself with all settings and deploy a cluster and nodes with the settings that meet your requirements. For more information, see  <a href="https://docs.aws.amazon.com/eks/latest/userguide/create-cluster.html">Creating an Amazon EKS cluster</a>  and  <a href="https://docs.aws.amazon.com/eks/latest/userguide/eks-compute.html">Amazon EKS nodes</a>. Some settings can only be enabled when creating your cluster and nodes.</p>
+<p>Create your Amazon EKS cluster with the following command.</p>
+<pre><code>eksctl create cluster -f 5gmeta-cluster-config.yaml
+
+eksctl get cluster
+
+aws eks describe-cluster --name 5gmeta-cloud
+
+helm repo add 5gmeta https://&lt;id&gt;@raw.githubusercontent.com/5gmetadmin/helmcharts/main/repository
+
+kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=&lt;user&gt; --docker-password=&lt;password&gt;
+</code></pre>
+<p>The yaml configuration file can be found in this repository: <a href="https://github.com/5gmeta/platform-config/blob/main/src/eksctl/5gmeta-cluster-config.yaml">5gmeta-cluster-config.yaml</a></p>
+<p>The cluster that will be created will be made up of two nodes, and can be scaled up to 4 nodes without the cluster running out of resources. The nodes will be deployed in the eu-west-3 region, with Kubernetes version 1.21 and with the instance type t3a.large (2 vCPU, 8GiB Memory). <a href="https://github.com/5gmeta/platform-config/blob/main/src/5gmeta-cluster-ssh-key.pem">5gmeta-cluster-ssh-key.pem</a> key is used for ssh access. It was previously created using EC2 AWS <a href="https://eu-west-3.console.aws.amazon.com/ec2/home?region=eu-west-3#KeyPairs:">interface</a>.</p>
+<p>To avoid unneeded costs when nodes are going to be in public nodegroups anyway,  default NAT gateway creation is disabled. Automatic creation of IAM Roles for autoScaler, ebs and albIngress are enabled.</p>
+<pre><code>apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: 5gmeta-cloud
+  region: eu-west-3
+  version: &quot;1.21&quot;
+
+vpc:
+  nat:
+    gateway: Disable # other options: HighlyAvailable, Single
+
+iam:
+  withOIDC: true
+
+managedNodeGroups:
+  - name: managed-ng-1
+    instanceType: t3a.large
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 4
+    volumeSize: 50
+    ssh:
+      allow: true # will use ~/.ssh/id_rsa.pub as the default ssh key if no publicKeyNamem specified
+      publicKeyName: 5gmeta-cluster-key # key created in aws
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        ebs: true
+        albIngress: true
+    ami: ami-&lt;id&gt; # get ami id 'aws ssm get-parameter --name /aws/service/eks/optimized-ami/1.21/amazon-linux-2/recommended/image_id --region eu-west-3 --query &quot;Parameter.Value&quot; --output text'
+    overrideBootstrapCommand: |
+      #!/bin/bash
+      /etc/eks/bootstrap.sh 5gmeta-cloud --kubelet-extra-args &quot;--kube-reserved memory=0.3Gi,ephemeral-storage=1Gi --system-reserved memory=0.3Gi,ephemeral-storage=1Gi --eviction-hard memory.available&lt;200Mi,nodefs.available&lt;10%&quot;
+</code></pre>
+<h2 id="step-2-configure-amazon-eks-cluster">Step 2: Configure Amazon EKS cluster</h2>
+<p><strong>Create an IAM OIDC provider:</strong>
+Amazon EKS supports using OpenID Connect (OIDC) identity providers as a method to authenticate users in the cluster. After configuring authentication in the cluster, Kubernetes <code>roles</code> and <code>clusterroles</code> can be created to assign permissions to the roles, and then bind the roles to the identities using Kubernetes <code>rolebindings</code> and <code>clusterrolebindings</code>.</p>
+<p>The cluster has an <a href="https://openid.net/connect/">OpenID Connect</a> (OIDC) issuer URL associated with it. To use AWS Identity and Access Management (IAM) roles for service accounts, an IAM OIDC provider must exist.</p>
+<pre><code>oidc_id=$(aws eks describe-cluster --name 5gmeta-cloud --query &quot;cluster.identity.oidc.issuer&quot; --output text | cut -d '/' -f 5)
+
+aws iam list-open-id-connect-providers | grep $oidc_id
+</code></pre>
+<p>If output is returned from the previous command, a provider for the cluster is already created and next step can be skipped. If no output is returned, then an IAM OIDC provider must be created.</p>
+<pre><code>eksctl utils associate-iam-oidc-provider --cluster 5gmeta-cloud --approve
+</code></pre>
+<p><strong>Install AWS Load Balancer Controller add-on:</strong></p>
+<p>The AWS Load Balancer Controller manages AWS Elastic Load Balancers for a Kubernetes cluster. The controller provisions the following resources.
+- An AWS Application Load Balancer (ALB) when you create a Kubernetes Ingress.
+- An AWS Network Load Balancer (NLB) when you create a Kubernetes service of type LoadBalancer. In the past, the Kubernetes network load balancer was used for instance targets, but the AWS Load balancer Controller was used for IP targets. With the AWS Load Balancer Controller version 2.3.0 or later, you can create NLBs using either target type. For more information about NLB target types, see Target type in the User Guide for Network Load Balancers.</p>
+<p>The AWS Load Balancer Controller was formerly named the <em>AWS ALB Ingress Controller</em>. It's an <a href="https://github.com/kubernetes-sigs/aws-load-balancer-controller">open-source project</a> managed on GitHub. This topic describes how to install the controller using default options. You can view the full <a href="https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/">documentation</a> for the controller on GitHub. Before deploying the controller, we recommend that you review the prerequisites and considerations in <a href="https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html">Application load balancing on Amazon EKS</a> and <a href="https://docs.aws.amazon.com/eks/latest/userguide/network-load-balancing.html">Network load balancing on Amazon EKS</a>. Those topics also include steps on how to deploy a sample application that require the AWS Load Balancer Controller to provision AWS Application Load Balancers and Network Load Balancers.</p>
+<p>To deploy the AWS Load Balancer Controller to an Amazon EKS cluster:</p>
+<pre><code>curl -o iam_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.1/docs/install/iam_policy.json
+
+aws iam create-policy --policy-name AWSLoadBalancerControllerIAMPolicy --policy-document file://iam_policy.json
+
+eksctl create iamserviceaccount --cluster=5gmeta-cloud --namespace=kube-system --name=aws-load-balancer-controller --attach-policy-arn=arn:aws:iam::&lt;idaws&gt;:policy/AWSLoadBalancerControllerIAMPolicy --override-existing-serviceaccounts --approve #&lt;idaws&gt; refers to the account ID
+
+helm repo add eks https://aws.github.io/eks-charts
+
+helm repo update
+
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=5gmeta-cloud --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller
+
+kubectl get deployment -n kube-system aws-load-balancer-controller
+</code></pre>
+<p><strong>Install AWS Storage Controller</strong></p>
+<p>Amazon EKS clusters that were created prior to Kubernetes version <code>1.11</code> weren't created with any storage classes. You must define storage classes for your cluster to use and you should define a default storage class for your persistent volume claims. For more information, see <a href="https://kubernetes.io/docs/concepts/storage/storage-classes">Storage classes</a> in the Kubernetes documentation.</p>
+<p>The Amazon Elastic Block Store (Amazon EBS) Container Storage Interface (CSI) driver allows Amazon Elastic Kubernetes Service (Amazon EKS) clusters to manage the lifecycle of Amazon EBS volumes for persistent volumes. The Amazon EBS CSI driver isn't installed when you first create a cluster.</p>
+<p>More information about <code>ebs.csi.aws.com</code> and <code>kubernetes.io/aws-ebs</code> provisioners:
+<a href="https://stackoverflow.com/questions/68359043/whats-the-difference-between-ebs-csi-aws-com-vs-kubernetes-io-aws-ebs-for-provi">https://stackoverflow.com/questions/68359043/whats-the-difference-between-ebs-csi-aws-com-vs-kubernetes-io-aws-ebs-for-provi</a></p>
+<pre><code>curl -o example-iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-ebs-csi-driver/master/docs/example-iam-policy.json
+
+aws iam create-policy --policy-name AmazonEKS_EBS_CSI_Driver_Policy --policy-document file://example-iam-policy.json
+
+eksctl create iamserviceaccount --name ebs-csi-controller-sa --namespace kube-system --cluster 5gmeta-cloud --attach-policy-arn arn:aws:iam::&lt;idaws&gt;:policy/AmazonEKS_EBS_CSI_Driver_Policy --approve --override-existing-serviceaccounts #&lt;idaws&gt; refers to the account ID
+
+helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+
+helm repo update
+
+helm upgrade -install aws-ebs-csi-driver aws-ebs-csi-driver/aws-ebs-csi-driver --namespace kube-system --set controller.serviceAccount.create=false --set controller.serviceAccount.name=ebs-csi-controller-sa
+
+kubectl get deployment -n kube-system ebs-csi-controller
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-ebs-csi-driver/master/examples/kubernetes/dynamic-provisioning/manifests/storageclass.yaml
+
+kubectl get storageclass
+
+kubectl patch storageclass gp2 -p '{&quot;metadata&quot;:{&quot;annotations&quot;:{&quot;storageclass.kubernetes.io/is-default-class&quot;:&quot;false&quot;}}}'
+
+kubectl patch storageclass ebs-sc -p '{&quot;metadata&quot;:{&quot;annotations&quot;:{&quot;storageclass.kubernetes.io/is-default-class&quot;:&quot;true&quot;}}}'
+
+kubectl get storageclass
+</code></pre>
+<p><strong>Define the default storage class</strong>
+A StorageClass provides a way for administrators to describe the "classes" of storage they offer. <a href="https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/">Dynamic Volume Provisioning</a> allows storage <a href="https://kubernetes.io/docs/concepts/storage/volumes/">volumes</a>  and <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes">persistent volumes</a> to be created on-demand. <a href="https://kubernetes.io/docs/concepts/storage/storage-classes/">StorageClass</a> should be pre-created to define which provisioner should be used and what parameters should be passed when dynamic provisioning is invoked.</p>
+<p>To define the storage class the following <a href="https://github.com/5gmeta/platform-config/blob/main/src/storageclass/storageclass-retain.yaml">manifest file</a> will be applied. Thanks to this storage class every persistent volume will be deployed in AWS S3, using the previously installed storage controller.</p>
+<pre><code>apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-sc-retain
+provisioner: ebs.csi.aws.com
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+</code></pre>
+<p>To become the storage class the default one: <code>kubectl annotate storageclass gp2 storageclass.kubernetes.io/is-default-class=true</code></p>
+<p><strong>Install Cluster Autoscaler</strong></p>
+<p>The Kubernetes <a href="https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler">Cluster Autoscaler</a> automatically adjusts the number of nodes in your cluster when pods fail or are rescheduled onto other nodes. The Cluster Autoscaler is typically installed as a <a href="https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler/cloudprovider/aws/examples">Deployment</a> in your cluster. It uses <a href="https://en.wikipedia.org/wiki/Leader_election">leader election</a> to ensure high availability, but scaling is done by only one replica at a time.</p>
+<p>Create an IAM policy that grants the permissions that the Cluster Autoscaler requires to use an IAM role. Save the following contents to a file that's named <code>cluster-autoscaler-policy.json</code>.</p>
+<pre><code>{
+    &quot;Version&quot;: &quot;2012-10-17&quot;,
+    &quot;Statement&quot;: [
+        {
+        &quot;Effect&quot;: &quot;Allow&quot;,
+        &quot;Action&quot;: [
+            &quot;autoscaling:DescribeAutoScalingGroups&quot;,
+            &quot;autoscaling:DescribeAutoScalingInstances&quot;,
+            &quot;autoscaling:DescribeLaunchConfigurations&quot;,
+            &quot;autoscaling:DescribeTags&quot;,
+            &quot;ec2:DescribeInstanceTypes&quot;,
+            &quot;ec2:DescribeLaunchTemplateVersions&quot;
+        ],
+        &quot;Resource&quot;: [&quot;*&quot;]
+        },
+        {
+        &quot;Effect&quot;: &quot;Allow&quot;,
+        &quot;Action&quot;: [
+            &quot;autoscaling:SetDesiredCapacity&quot;,
+            &quot;autoscaling:TerminateInstanceInAutoScalingGroup&quot;
+        ],
+        &quot;Resource&quot;: [&quot;*&quot;]
+        }
+    ]
+}
+</code></pre>
+<p>Create the policy with the following command.</p>
+<pre><code>aws iam create-policy --policy-name AmazonEKSClusterAutoscalerPolicy --policy-document file://cluster-autoscaler-policy.json
+
+eksctl create iamserviceaccount --cluster=5gmeta-cloud --namespace=kube-system --name=cluster-autoscaler --attach-policy-arn=arn:aws:iam::&lt;idaws&gt;:policy/AmazonEKSClusterAutoscalerPolicy --override-existing-serviceaccounts --approve #&lt;idaws&gt; refers to the account ID
+</code></pre>
+<p>Complete the following steps to deploy the Cluster Autoscaler. We recommend that you review <a href="https://docs.aws.amazon.com/eks/latest/userguide/autoscaling.html#ca-deployment-considerations">Deployment considerations</a> and optimize the Cluster Autoscaler deployment before you deploy it to a production cluster.</p>
+<pre><code>curl -o cluster-autoscaler-autodiscover.yaml https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+</code></pre>
+<p>Edit the cluster-autoscaler manifest to replace <YOUR CLUSTER NAME> (including &lt;&gt;) with the name of your cluster, and add the following options. --balance-similar-node-groups ensures that there is enough available compute across all availability zones. --skip-nodes-with-system-pods=false ensures that there are no problems with scaling to zero.</p>
+<pre><code>kubectl apply -f cluster-autoscaler-autodiscover.yaml
+
+kubectl annotate serviceaccount cluster-autoscaler -n kube-system eks.amazonaws.com/role-arn=arn:aws:iam::&lt;idaws&gt;:role/AmazonEKSClusterAutoscalerRole --aprove #&lt;idaws&gt; refers to the account ID
+
+kubectl patch deployment cluster-autoscaler -n kube-system -p '{&quot;spec&quot;:{&quot;template&quot;:{&quot;metadata&quot;:{&quot;annotations&quot;:{&quot;cluster-autoscaler.kubernetes.io/safe-to-evict&quot;: &quot;false&quot;}}}}}'
+
+export K8S_VERSION=$(kubectl version --short | grep 'Server Version:' | sed 's/[^0-9.]*\([0-9.]*\).*/\1/' | cut -d. -f1,2)
+
+export AUTOSCALER_VERSION=$(curl -s &quot;https://api.github.com/repos/kubernetes/autoscaler/releases&quot; | grep '&quot;tag_name&quot;:' | sed -s 's/.*-\([0-9][0-9\.]*\).*/\1/' | grep -m1 ${K8S_VERSION})
+
+kubectl set image deployment cluster-autoscaler -n kube-system cluster-autoscaler=k8s.gcr.io/autoscaling/cluster-autoscaler:v${AUTOSCALER_VERSION}
+
+kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
+</code></pre>
+<p><strong>Modify AWS Security Group for accessing NodePorts (30000-32768) from outside (if needed)</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Cheat sheet - </title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Cheat sheet";
+        var mkdocs_page_input_path = "cheat-sheet.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="..">
+          <img src="../img/Logo_5G_META_reversed_on_dark_backgr_only.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".."></a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Cheat sheet</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="cloud-platform">CLOUD Platform:</h2>
+<p>5GMETA Cloud platform has been deployed in AWS EKS service. In the following picture we can see the architecure and the diferent services exposed: <img alt="Cloud Architecture" src="../img/Cloud%20Architecture.png" /></p>
+<p>The next figure shows the modules that form this cloud platform: <img alt="Cloud Platform" src="../img/Cloud%20Platform.png" /></p>
+<h3 id="cloud-services-shortcuts">Cloud Services shortcuts</h3>
+<p><strong>APIs:</strong></p>
+<ul>
+<li>Discovery API: <a href="https://&lt;ip&gt;/discovery-api/ui">https://<ip>/discovery-api/</a></li>
+<li>Instance API: <a href="https://&lt;ip&gt;/cloudinstance-api/ui">https://<ip>/cloudinstance-api/</a></li>
+<li>Dataflow API: <a href="https://&lt;ip&gt;/dataflow-api/ui">https://<ip>/dataflow-api/</a></li>
+<li>License API: <a href="https://&lt;ip&gt;/license-api/ui">https://<ip>/license-api/</a></li>
+</ul>
+<p><strong>Kafka Platform:</strong></p>
+<ul>
+<li>Brokers (Bootstrap): <strong><ip>:31090</strong>, <strong><ip>:31091</strong>, <strong><ip>:31092</strong></li>
+<li>Registry: <strong><ip>:31081</strong></li>
+<li>KSQLDB: <strong><ip>:31088</strong></li>
+<li>Kafka UI: <a href="http://&lt;ip&gt;:31080/">http://<ip>:31080</a> ( <strong><user></strong> / <strong><password></strong> )</li>
+</ul>
+<p><strong>Other services:</strong></p>
+<ul>
+<li>Keycloak: <a href="https://&lt;ip&gt;/identity/admin/">https://<ip>/identity/admin/</a> ( <user> / <password> )</li>
+<li>Grafana: <a href="http://&lt;ip&gt;:31137">http://<ip>:31137</a> ( <user> / <password> )</li>
+<li>Prometheus: <a href="http://&lt;ip&gt;:30090">http://<ip>:30090</a></li>
+<li>Kubernetes Dashboard: <a href="https://&lt;ip&gt;:30183">https://<ip>:30183</a>. To get a token run: <code>kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"</code></li>
+<li>MySQL: <strong><ip>:30057</strong>. To get the root password run: <code>kubectl get secret --namespace mysql mysql-cluster -o jsonpath="{.data.mysql-root-password}" | base64 -d</code>. Another user has been created so that root user is not used in the applications or if the K8s secret is not used: <strong><user></strong> / <strong><password></strong></li>
+</ul>
+<p><span class="twemoji-64-people _1f64b" title=":raising_hand:">🙋</span> All the urls pointing to the public IPs of amazon can be replaces with any other public IP reserved in AWS. For example: <strong><ip></strong></p>
+<h2 id="mec-platform">MEC Platform:</h2>
+<p>Architecture of the MEC Platform: <img alt="MEC Architecture" src="../img/MEC%20Architecture.png" /></p>
+<p>Modules composing the platform: <img alt="MEC Platform" src="../img/MEC%20Platform.png" /></p>
+<h3 id="mec-services-shortcuts">MEC Services shortcuts</h3>
+<p><strong>APIs:</strong></p>
+<ul>
+<li>Registration: <a href="http://&lt;ip&gt;:12346/ui">http://<ip>:12346</a></li>
+<li>Instance API: <a href="http://&lt;ip&gt;:5000/ui">http://<ip>:5000</a> (Internal), <a href="http://&lt;ip&gt;:5000/ui">http://<ip>:5000</a> (External)</li>
+</ul>
+<p><strong>Brokers:</strong></p>
+<ul>
+<li>Message-broker: <a href="http://&lt;ip&gt;:8161">http://<ip>:8161</a> (UI), <strong><ip>:5673</strong> (Port for producing data, clients), <strong><ip>:61616</strong> (Port of ActiveMQ, Kafka Connectors, Internal), <strong><ip>:616161</strong> (Port of ActiveMQ, Kafka Connectors, External)</li>
+<li>Video-broker: <strong><ip>:8443</strong>,  <strong><ip>:&lt;55000-55098&gt;</strong></li>
+</ul>
+<p><strong>Other services:</strong></p>
+<ul>
+<li>OSM: <a href="http://&lt;ip&gt;">http://<ip></a></li>
+<li>OSM API: <a href="https://&lt;ip&gt;:9999">https://<ip>:9999</a></li>
+<li>Kubernetes Dashboard: <a href="https://&lt;ip&gt;:27460">https://<ip>:27460</a>. To get a token run: <code>kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa/admin-user -o jsonpath="{.secrets[0].name}") -o go-template="{{.data.token | base64decode}}"</code></li>
+<li>Grafana: <a href="http://&lt;ip&gt;:3000">http://<ip>:3000</a> ( <strong><user></strong> / <strong><password></strong> )</li>
+<li>Prometheus: <a href="http://&lt;ip&gt;:9090">http://<ip>:9090</a></li>
+<li>MySQL: <strong><ip>:35430</strong>. To get the root password run: <code>kubectl get secret --namespace mysql mysql-cluster -o jsonpath="{.data.mysql-root-password}" | base64 -d</code></li>
+</ul>
+<h2 id="repositories">Repositories</h2>
+<ul>
+<li><strong>DockerHub</strong>: <a href="https://hub.docker.com/orgs/5gmeta/repositories">https://hub.docker.com/orgs/5gmeta/repositories</a></li>
+<li><strong>Helm Chart repository</strong>: <a href="https://github.com/5gmeta/helmcharts">https://github.com/5gmeta/helmcharts</a></li>
+<li><strong>OSM descriptors repository</strong>: <a href="https://github.com/5gmeta/vnfdescriptors">https://github.com/5gmeta/vnfdescriptors</a></li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
