@@ -1,0 +1,43 @@
+prometheus:
+  service:
+    type: NodePort
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+    retention: 30d
+  enabled: true
+  prometheusSpec:
+    additionalScrapeConfigs: |
+      - job_name: kafka
+        static_configs:
+          - targets:
+            - kafkacluster-cp-kafka-connect.kafka.svc.cluster.local:5556
+            - kafkacluster-cp-kafka-rest.kafka.svc.cluster.local:5556
+            - kafkacluster-cp-ksql-server.kafka.svc.cluster.local:5556
+            - kafkacluster-cp-schema-registry.kafka.svc.cluster.local:5556
+            - kafkacluster-cp-zookeeper.kafka.svc.cluster.local:5556
+            - kafkacluster-cp-kafka.kafka.svc.cluster.local:5556
+
+alertmanager:
+  service:
+    type: NodePort
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+
+grafana:
+  service:
+    type: NodePort
+  persistence:
+    enabled: true
+

@@ -1,0 +1,54 @@
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: 5gmeta-access-role
+rules:
+  - apiGroups:
+      - ""
+      - "apps"
+      - "batch"
+      - "extensions"
+      - "autoscaling"
+      - "networking.k8s.io"
+    resources: ["*"] 
+#    resources:
+#      - "configmaps"
+#      - "cronjobs"
+#      - "deployments"
+#      - "events"
+#      - "ingresses"
+#      - "jobs"
+#      - "pods"
+#      - "pods/attach"
+#      - "pods/exec"
+#      - "pods/log"
+#      - "pods/portforward"
+#      - "secrets"
+#      - "services"
+    verbs: ["*"] 
+#    verbs:
+#      - "create"
+#      - "delete"
+#      - "describe"
+#      - "get"
+#      - "list"
+#      - "patch"
+#      - "update"
+# - apiGroups: ["batch"]
+#   resources:
+#     - jobs
+#     - cronjobs
+#   verbs: ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: 5gmeta-role-binding
+subjects:
+- kind: User
+  name: <username>
+roleRef:
+  kind: Role
+  name: 5gmeta-access-role
+  apiGroup: rbac.authorization.k8s.io

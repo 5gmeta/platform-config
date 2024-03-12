@@ -1,0 +1,54 @@
+site_name: ""
+nav:
+     - Home: index.md
+     #- 5GMETA Cheat Sheet: cheat-sheet.md
+     #- 5GMETA Cloud Platform:
+        #- 1. Cloud Platform Deployment: cloud-deployment.md
+        #- 2. Monitoring: cloud-monitoring.md
+        #- 3. Kafka Deployment: kafka-deployment.md
+        #- 4. Cloud Database - MySQL: cloud-database.md
+        #- 5. SMTP Server: smtp-server.md
+        #- 6. 5GMETA Modules Deployment: cloud-modules-deployment.md
+        #- 7. Kubernetes Cluster Access Grant: cloud-access-grant.md
+        #- 8. Platform Walkthrough: platform-walkthrough.md
+     #- 5GMETA MEC Platform:
+        #- 1. MEC Server Deployment: mec-deployment.md
+        #- 2. Kubernetes GPU Management: gpu-management.md
+        #- 3. Security - Docker Signing: docker-signing.md
+theme:
+  name: readthedocs
+  logo: img/Logo_5G_META_reversed_on_dark_backgr_only.png
+#   custom_dir: custom_theme/
+# --------------------------------------------
+#   name: material
+#   logo: img/Logo_5G_META_reversed_on_dark_backgr_only.png
+#   favicon: img/black_logo.png
+#   palette:
+#     # Palette toggle for light mode
+#     - media: "(prefers-color-scheme: light)"
+#       primary: deep purple
+#       scheme: default
+#       toggle:
+#         icon: material/brightness-7
+#         name: Switch to dark mode
+
+#     # Palette toggle for dark mode
+#     - media: "(prefers-color-scheme: dark)"
+#       primary: deep purple
+#       scheme: slate
+#       toggle:
+#         icon: material/brightness-4
+#         name: Switch to light mode
+#   features:
+#     - navigation.tabs
+# #    - navigation.sections
+#     - navigation.indexes
+# --------------------------------------------
+pages:
+plugins:
+  - search
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:pymdownx.emoji.to_png_sprite
